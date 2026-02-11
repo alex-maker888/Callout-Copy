@@ -1,0 +1,23 @@
+{
+  "name": "callback-copy",
+  "version": "1.0.0",
+  "description": "Obsidian plugin baseline for callback copy functionality.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin"
+  ],
+  "author": "timti",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.17.24",
+    "esbuild": "^0.25.1",
+    "obsidian": "^1.8.7",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.2"
+  }
+}

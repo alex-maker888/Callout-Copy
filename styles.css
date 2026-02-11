@@ -1,0 +1,36 @@
+.callback-copy-enabled {
+	position: relative;
+}
+
+.callback-copy-btn {
+	position: absolute;
+	top: 0.4rem;
+	right: 0.4rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.7rem;
+	height: 1.7rem;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-primary-alt);
+	color: var(--text-muted);
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 120ms ease, color 120ms ease;
+	z-index: 2;
+}
+
+.callback-copy-enabled:hover .callback-copy-btn,
+.callback-copy-btn:focus-visible {
+	opacity: 1;
+}
+
+.callback-copy-btn:hover {
+	color: var(--text-normal);
+}
+
+/* Avoid overlap with Live Preview UI icons (e.g., embed/fold controls). */
+.markdown-source-view.mod-cm6.is-live-preview .callback-copy-btn {
+	right: 1.9rem;
+}

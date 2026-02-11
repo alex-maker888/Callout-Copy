@@ -1,0 +1,10 @@
+{
+  "id": "callout-copy",
+  "name": "Callout Copy",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Adds copy interactions for callback-focused content.",
+  "author": "alex-maker888",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
