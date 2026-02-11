@@ -11,7 +11,7 @@
     "obsidian",
     "plugin"
   ],
-  "author": "timti",
+  "author": "alex-maker888",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.17.24",
