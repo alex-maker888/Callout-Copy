@@ -1,4 +1,4 @@
-import { Menu, Notice, Plugin, setIcon } from "obsidian";
+import { MarkdownView, Menu, Notice, Plugin, setIcon } from "obsidian";
 
 export default class CallbackCopyPlugin extends Plugin {
 	private observer: MutationObserver | null = null;
@@ -272,16 +272,16 @@ export default class CallbackCopyPlugin extends Plugin {
 	}
 
 	private async getCalloutMarkdown(callout: HTMLElement): Promise<string | null> {
-		const activeFile = this.app.workspace.getActiveFile();
-		if (!activeFile) {
-			return null;
-		}
-
 		const viewRoot = callout.closest(
 			".markdown-reading-view, .markdown-preview-view, .markdown-source-view",
 		);
 
 		if (!(viewRoot instanceof HTMLElement)) {
+			return null;
+		}
+
+		const sourceFile = this.resolveSourceFileForCallout(callout);
+		if (!sourceFile) {
 			return null;
 		}
 
@@ -291,7 +291,7 @@ export default class CallbackCopyPlugin extends Plugin {
 			return null;
 		}
 
-		const fileText = await this.app.vault.cachedRead(activeFile);
+		const fileText = await this.app.vault.cachedRead(sourceFile);
 		const blocks = this.extractCalloutBlocks(fileText);
 		const selectedBlock = blocks[calloutIndex];
 
@@ -300,6 +300,23 @@ export default class CallbackCopyPlugin extends Plugin {
 		}
 
 		return this.extractCalloutBodyMarkdown(selectedBlock);
+	}
+
+	private resolveSourceFileForCallout(callout: HTMLElement) {
+		const markdownLeaves = this.app.workspace.getLeavesOfType("markdown");
+
+		for (const leaf of markdownLeaves) {
+			const view = leaf.view;
+			if (!(view instanceof MarkdownView) || !view.file) {
+				continue;
+			}
+
+			if (view.contentEl.contains(callout) || view.containerEl.contains(callout)) {
+				return view.file;
+			}
+		}
+
+		return this.app.workspace.getActiveFile();
 	}
 
 	private extractCalloutBlocks(markdown: string): string[] {
