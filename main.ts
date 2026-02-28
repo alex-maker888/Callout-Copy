@@ -1,5 +1,11 @@
 import { MarkdownView, Menu, Notice, Plugin, setIcon } from "obsidian";
 
+type ParsedCalloutBlock = {
+	raw: string;
+	startLine: number;
+	endLine: number;
+};
+
 export default class CallbackCopyPlugin extends Plugin {
 	private observer: MutationObserver | null = null;
 
@@ -80,8 +86,7 @@ export default class CallbackCopyPlugin extends Plugin {
 				return;
 			}
 
-			setIcon(button, "check");
-			window.setTimeout(() => setIcon(button, "copy"), 1200);
+			setIcon(button, "copy");
 		});
 
 		button.addEventListener("contextmenu", (event) => {
@@ -158,8 +163,7 @@ export default class CallbackCopyPlugin extends Plugin {
 	}
 
 	private flashSuccess(button: HTMLElement): void {
-		setIcon(button, "check");
-		window.setTimeout(() => setIcon(button, "copy"), 1200);
+		setIcon(button, "copy");
 	}
 
 	private async copyCalloutPlainTextOnly(callout: HTMLElement): Promise<boolean> {
@@ -287,19 +291,38 @@ export default class CallbackCopyPlugin extends Plugin {
 
 		const renderedCallouts = Array.from(viewRoot.querySelectorAll<HTMLElement>(".callout"));
 		const calloutIndex = renderedCallouts.indexOf(callout);
-		if (calloutIndex === -1) {
-			return null;
-		}
+		const sourceLine = this.resolveSourceLineForCallout(callout);
 
 		const fileText = await this.app.vault.cachedRead(sourceFile);
 		const blocks = this.extractCalloutBlocks(fileText);
-		const selectedBlock = blocks[calloutIndex];
+		const selectedBlock = this.selectMatchingCalloutBlock(
+			blocks,
+			sourceLine,
+			calloutIndex,
+		);
 
 		if (!selectedBlock) {
 			return null;
 		}
 
-		return this.extractCalloutBodyMarkdown(selectedBlock);
+		return this.extractCalloutBodyMarkdown(selectedBlock.raw);
+	}
+
+	private resolveSourceLineForCallout(callout: HTMLElement): number | null {
+		const lineCarrier = callout.closest<HTMLElement>("[data-line]")
+			?? callout.querySelector<HTMLElement>("[data-line]");
+
+		if (!lineCarrier) {
+			return null;
+		}
+
+		const rawLine = lineCarrier.getAttribute("data-line");
+		if (!rawLine) {
+			return null;
+		}
+
+		const parsed = Number.parseInt(rawLine, 10);
+		return Number.isNaN(parsed) ? null : parsed;
 	}
 
 	private resolveSourceFileForCallout(callout: HTMLElement) {
@@ -319,9 +342,9 @@ export default class CallbackCopyPlugin extends Plugin {
 		return this.app.workspace.getActiveFile();
 	}
 
-	private extractCalloutBlocks(markdown: string): string[] {
+	private extractCalloutBlocks(markdown: string): ParsedCalloutBlock[] {
 		const lines = markdown.split(/\r?\n/);
-		const blocks: string[] = [];
+		const blocks: ParsedCalloutBlock[] = [];
 
 		for (let i = 0; i < lines.length; i++) {
 			if (!/^\s*>\s*\[![-\w]+\]/i.test(lines[i])) {
@@ -336,11 +359,41 @@ export default class CallbackCopyPlugin extends Plugin {
 				j++;
 			}
 
-			blocks.push(blockLines.join("\n").trimEnd());
+			blocks.push({
+				raw: blockLines.join("\n").trimEnd(),
+				startLine: i,
+				endLine: j - 1,
+			});
 			i = j - 1;
 		}
 
 		return blocks;
+	}
+
+	private selectMatchingCalloutBlock(
+		blocks: ParsedCalloutBlock[],
+		sourceLine: number | null,
+		calloutIndex: number,
+	): ParsedCalloutBlock | null {
+		if (sourceLine !== null) {
+			const containsLine = blocks.find(
+				(block) => sourceLine >= block.startLine && sourceLine <= block.endLine,
+			);
+			if (containsLine) {
+				return containsLine;
+			}
+
+			const firstAfterLine = blocks.find((block) => block.startLine > sourceLine);
+			if (firstAfterLine) {
+				return firstAfterLine;
+			}
+		}
+
+		if (calloutIndex >= 0 && calloutIndex < blocks.length) {
+			return blocks[calloutIndex];
+		}
+
+		return null;
 	}
 
 	private extractCalloutBodyMarkdown(calloutBlock: string): string {
