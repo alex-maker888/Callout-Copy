@@ -11,9 +11,14 @@
 	justify-content: center;
 	width: 1.7rem;
 	height: 1.7rem;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 6px;
-	background: var(--background-primary-alt);
+	appearance: none;
+	-webkit-appearance: none;
+	border: none !important;
+	border-radius: 0;
+	background: transparent !important;
+	box-shadow: none !important;
+	outline: none;
+	padding: 0;
 	color: var(--text-muted);
 	cursor: pointer;
 	opacity: 0;
