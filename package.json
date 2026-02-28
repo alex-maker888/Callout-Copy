@@ -1,6 +1,6 @@
 {
   "name": "callback-copy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Obsidian plugin baseline for callback copy functionality.",
   "main": "main.js",
   "scripts": {
